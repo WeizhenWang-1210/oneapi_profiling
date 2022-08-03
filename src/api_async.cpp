@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
               << std::endl;
         std::ofstream outfile;
         outfile.open("fill_async.txt_"+postfix);
-        for(int j = 0; j < 30; j++){
+        for(int j = 0; j < 20; j++){
             int test_size = 1<<j;
             for(int i = 0; i < 20; i++){
                 {
@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
         }
         outfile.close();
         outfile.open("reduce_async.txt_"+postfix);
-        for(int j = 0; j < 30; j++){
+        for(int j = 0; j < 20; j++){
             int test_size = 1<<j;
             for(int i = 0; i < 20; i++){
                 {
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
         }
         outfile.close();  
         outfile.open("sort_async.txt_"+postfix);
-        for(int j = 1; j < 30; j++){ //caviat: sort must start with buff size at least 2
+        for(int j = 1; j < 20; j++){ //caviat: sort must start with buff size at least 2
             int test_size = 1<<j;
             for(int i = 0; i < 20; i++){
                 {
@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
         outfile.close();
         
         outfile.open("inclusive_scan_async.txt_"+postfix);
-        for(int j = 0; j < 30; j++){
+        for(int j = 0; j < 20; j++){
             int test_size = 1<<j;
             for(int i = 0; i < 20; i++){
                 {
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
         }
         outfile.close();
         outfile.open("copy_async.txt_"+postfix);
-         for(int j = 0; j < 30; j++){
+         for(int j = 0; j < 20; j++){
             int test_size = 1<<j;
             for(int i = 0; i < 20; i++){
                 {
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
         //oneapi::for_each
         
         outfile.open("max_element.txt_"+postfix);
-        for(int j = 0; j < 30; j++){
+        for(int j = 0; j < 20; j++){
             int test_size = 1<<j;
             for(int i = 0; i < 20; i++){
                 {
@@ -140,7 +140,7 @@ int main(int argc, char *argv[]) {
         }
         outfile.close();
         outfile.open("distance.txt_"+postfix);
-        for(int j = 0; j < 30; j++){
+        for(int j = 0; j < 20; j++){
             int test_size = 1<<j;
             for(int i = 0; i < 20; i++){
                 {
@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
         std::ofstream outfile2;
         outfile.open("transform.txt_"+postfix);
         outfile2.open("stable_sort.txt_"+postfix);
-        for(int j = 0; j < 30; j++){
+        for(int j = 0; j < 20; j++){
             int n = 1<<j;
             for(int i = 0; i < 20; i++){
                 {
