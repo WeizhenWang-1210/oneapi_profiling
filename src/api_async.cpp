@@ -91,7 +91,7 @@ int main(int argc, char *argv[]) {
                     ret_val.wait();
                     auto stop = std::chrono::high_resolution_clock::now();
                     auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-                    if(!(j==0&&i==0)){
+                    if(!(j==1&&i==0)){
                         partial += duration.count();
                     }
                 }
