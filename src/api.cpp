@@ -1,20 +1,37 @@
-#include <oneapi/dpl/execution>
 #include <oneapi/dpl/algorithm>
+#include <oneapi/dpl/execution>
 #include <oneapi/dpl/iterator>
+#include <oneapi/dpl/async>
 #include <CL/sycl.hpp>
 #include <chrono>
-int main(){
-  sycl::buffer<int> buf { 1000 };
-  auto buf_begin = oneapi::dpl::begin(buf);
-  auto buf_end   = oneapi::dpl::end(buf);
-  std::fill(oneapi::dpl::execution::dpcpp_default, buf_begin, buf_end, 42);
-  return 0;
-}
+int main() {
+    using namespace oneapi;
+    {
+      auto policy = oneapi::dpl::execution::dpcpp_default;
+      std::cout << "Run on "
+            << policy.queue().get_device().template
+                                        get_info<sycl::info::device::name>()
+            << std::endl;
+      std::ofstream outfile;
+      outfile.open("combined.txt");
+        for(int j = 0; j < 20; j++){
+          int test_size = 1<<j;
+          sycl::buffer<int> a{test_size};
+          auto start = std::chrono::system_clock::now();
 
-//
-        //oneapi::dpl::max_element
-        //oneapi::dpl::distance
-        //oneapi::transform
-        //oneapi::stable_sort
-        //oneapi::dpl::make_zip_iterator
-        //oneapi::for_each
+          auto fut1 = dpl::experimental::fill_async(dpl::execution::dpcpp_default,
+                                                  dpl::begin(a),dpl::end(a),7);
+
+          auto fut2 = dpl::experimental::transform_async(dpl::execution::dpcpp_default,
+                                                       dpl::begin(a),dpl::end(a),dpl::begin(a),
+                                                       [&](const int& x){return x + 1; },fut1);
+          auto ret_val = dpl::experimental::reduce_async(dpl::execution::dpcpp_default,
+                                                       dpl::begin(a),dpl::end(a),fut1,fut2).get(); 
+          
+          auto stop = std::chrono::system_clock::now();  
+          auto duration = duration_cast<std::chrono::microseconds>(stop - start);          
+        }
+        outfile.close();
+    }
+    return 0;
+}
