@@ -14,6 +14,15 @@ int main() {
             << std::endl;
       std::ofstream outfile;
       outfile.open("combined.txt");
+      sycl::buffer<int> a{10};
+      auto fut1 = dpl::experimental::fill_async(dpl::execution::dpcpp_default,
+                                                  dpl::begin(a),dpl::end(a),7);
+
+      auto fut2 = dpl::experimental::transform_async(dpl::execution::dpcpp_default,
+                                                       dpl::begin(a),dpl::end(a),dpl::begin(a),
+                                                       [&](const int& x){return x + 1; },fut1);
+      auto ret_val = dpl::experimental::reduce_async(dpl::execution::dpcpp_default,
+                                                       dpl::begin(a),dpl::end(a),fut1,fut2).get(); 
         for(int j = 0; j < 20; j++){
           int test_size = 1<<j;
           sycl::buffer<int> a{test_size};
@@ -29,7 +38,8 @@ int main() {
                                                        dpl::begin(a),dpl::end(a),fut1,fut2).get(); 
           
           auto stop = std::chrono::system_clock::now();  
-          auto duration = duration_cast<std::chrono::microseconds>(stop - start);          
+          auto duration = duration_cast<std::chrono::microseconds>(stop - start);    
+          outfile << duration.count() <<std::endl;      
         }
         outfile.close();
     }
