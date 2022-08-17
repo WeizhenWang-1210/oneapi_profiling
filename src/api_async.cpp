@@ -15,7 +15,6 @@ int main(int argc, char *argv[]) {
     //Start testing
     using namespace oneapi;
     {
-        int partial = 0, avg = 0;
         auto policy = oneapi::dpl::execution::dpcpp_default;
         std::cout << "Run on "
               << policy.queue().get_device().template
@@ -24,95 +23,53 @@ int main(int argc, char *argv[]) {
         std::ofstream outfile;
 
         outfile.open("fill_async.txt_"+postfix);
-        for(int j = 0; j < 20; j++){
-            int test_size = 1<<j;
-            for(int i = 0; i < 20; i++){
-                {
-                    sycl::buffer<int> a{test_size};
-                    auto start = std::chrono::high_resolution_clock::now();
-                    auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
-                    fut1.wait();
-                    auto stop = std::chrono::high_resolution_clock::now();
-                    auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-                    if(!(j==0&&i==0)){
-                        partial += duration.count();
-                    }
-                }
-            }
-            if(j==0){
-                avg = partial/19.0;
-            }else{
-                avg = partial/20.0;
-            }
-            partial = 0;
-            outfile <<avg <<std::endl;
+        for(int j = 0; j < 1024; j++){
+            int test_size = 1024 * (j + 1);
+            sycl::buffer<int> a{test_size};
+            auto start = std::chrono::high_resolution_clock::now();
+            auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
+            fut1.wait();
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = duration_cast<std::chrono::microseconds>(stop - start);
+            outfile <<duration.count() <<std::endl;
         }
         outfile.close();
 
         outfile.open("reduce_async.txt_"+postfix);
-        for(int j = 0; j < 20; j++){
-            int test_size = 1<<j;
-            for(int i = 0; i < 20; i++){
-                {
-                    sycl::buffer<int> a{test_size};
-                    auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
-                    fut1.wait();
-                    auto start = std::chrono::high_resolution_clock::now();
-                    auto ret_val = dpl::experimental::reduce_async(dpl::execution::dpcpp_default,
+        for(int j = 0; j < 1024; j++){
+            int test_size = 1024 * (j + 1);
+            sycl::buffer<int> a{test_size};
+            auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
+            fut1.wait();
+            auto start = std::chrono::high_resolution_clock::now();
+            auto ret_val = dpl::experimental::reduce_async(dpl::execution::dpcpp_default,
                                                             dpl::begin(a),dpl::end(a),fut1).get();
-                    auto stop = std::chrono::high_resolution_clock::now();
-                    auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-                    if(!(j==0&&i==0)){
-                        partial += duration.count();
-                    }
-                }
-            }
-            if(j==0){
-                avg = partial/19.0;
-            }else{
-                avg = partial/20.0;
-            }
-            partial = 0;
-            outfile <<avg <<std::endl;
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = duration_cast<std::chrono::microseconds>(stop - start);
+            outfile <<duration.count() <<std::endl;
         }
         outfile.close();
 
         outfile.open("sort_async.txt_"+postfix);
-        for(int j = 1; j < 20; j++){ //caviat: sort must start with buff size at least 2
-            int test_size = 1<<j;
-            for(int i = 0; i < 20; i++){
-                {
-                    sycl::buffer<int> a{test_size};
-                    auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
-                    fut1.wait();
-                    auto start = std::chrono::high_resolution_clock::now();
-                    auto ret_val = dpl::experimental::sort_async(dpl::execution::dpcpp_default,
+        for(int j = 1; j < 1024; j++){ //caviat: sort must start with buff size at least 2
+            int test_size = 1024 * (j + 1);
+            sycl::buffer<int> a{test_size};
+            auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
+            fut1.wait();
+            auto start = std::chrono::high_resolution_clock::now();
+            auto ret_val = dpl::experimental::sort_async(dpl::execution::dpcpp_default,
                                                             dpl::begin(a),dpl::end(a),fut1);
-                    ret_val.wait();
-                    auto stop = std::chrono::high_resolution_clock::now();
-                    auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-                    if(!(j==1&&i==0)){
-                        partial += duration.count();
-                    }
-                }
-            }
-            if(j==0){
-                avg = partial/19.0;
-            }else{
-                avg = partial/20.0;
-            }
-            partial = 0;
-            outfile <<avg <<std::endl;
+            ret_val.wait();
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = duration_cast<std::chrono::microseconds>(stop - start);
+            outfile <<duration.count() <<std::endl;
         }
         
         outfile.close();
         
         outfile.open("inclusive_scan_async.txt_"+postfix);
-        for(int j = 0; j < 20; j++){
-            int test_size = 1<<j;
-            for(int i = 0; i < 20; i++){
-                {
-                    //use addition
+        for(int j = 0; j < 1024; j++){
+            int test_size = 1024 * (j + 1);
                     sycl::buffer<int> a{test_size};
                     sycl::buffer<int> b{test_size};
                     auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
@@ -123,26 +80,13 @@ int main(int argc, char *argv[]) {
                     ret_val.wait();
                     auto stop = std::chrono::high_resolution_clock::now();
                     auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-                    if(!(j==0&&i==0)){
-                        partial += duration.count();
-                    }
-                }
-            }
-            if(j==0){
-                avg = partial/19.0;
-            }else{
-                avg = partial/20.0;
-            }
-            partial = 0;
-            outfile <<avg <<std::endl;
+            outfile <<duration.count() <<std::endl;
         }
         outfile.close();
 
         outfile.open("copy_async.txt_"+postfix);
-         for(int j = 0; j < 20; j++){
-            int test_size = 1<<j;
-            for(int i = 0; i < 20; i++){
-                {
+         for(int j = 0; j < 1024; j++){
+            int test_size = 1024 * (j + 1);
                     //use addition
                     sycl::buffer<int> a{test_size};
                     sycl::buffer<int> b{test_size};
@@ -154,18 +98,7 @@ int main(int argc, char *argv[]) {
                     ret_val.wait();
                     auto stop = std::chrono::high_resolution_clock::now();
                     auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-                    if(!(j==0&&i==0)){
-                        partial += duration.count();
-                    }
-                }
-            }
-            if(j==0){
-                avg = partial/19.0;
-            }else{
-                avg = partial/20.0;
-            }
-            partial = 0;
-            outfile <<avg <<std::endl;
+            outfile <<duration.count() <<std::endl;
         }
         outfile.close();
 
@@ -174,36 +107,21 @@ int main(int argc, char *argv[]) {
         //oneapi::for_each
         
         outfile.open("max_element.txt_"+postfix);
-        for(int j = 0; j < 20; j++){
-            int test_size = 1<<j;
-            for(int i = 0; i < 20; i++){
-                {
+        for(int j = 0; j < 1024; j++){
+            int test_size = 1024 * (j + 1);
                     sycl::buffer<int> a{test_size};
                     std::fill(policy,dpl::begin(a), dpl::end(a), 42);
                     auto start = std::chrono::high_resolution_clock::now();
                     auto ret_val = dpl::max_element(policy,dpl::begin(a),dpl::end(a));
                     auto stop = std::chrono::high_resolution_clock::now();
                     auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-                    if(!(j==0&&i==0)){
-                        partial += duration.count();
-                    }
-                }
-            }
-            if(j==0){
-                avg = partial/19.0;
-            }else{
-                avg = partial/20.0;
-            }
-            partial = 0;
-            outfile <<avg <<std::endl;
+            outfile <<duration.count()<<std::endl;
         }
         outfile.close();
 
         outfile.open("distance.txt_"+postfix);
-        for(int j = 0; j < 20; j++){
-            int test_size = 1<<j;
-            for(int i = 0; i < 20; i++){
-                {
+        for(int j = 0; j < 1024; j++){
+            int test_size = 1024 * (j + 1);
                     sycl::buffer<int> a{test_size};
                     std::fill(policy,dpl::begin(a), dpl::end(a), 42);
                     auto maxloc = dpl::max_element(policy,dpl::begin(a),dpl::end(a));
@@ -211,29 +129,15 @@ int main(int argc, char *argv[]) {
                     auto result = dpl::distance(oneapi::dpl::begin(a), maxloc);
                     auto stop = std::chrono::high_resolution_clock::now();
                     auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-                    if(!(j==0&&i==0)){
-                        partial += duration.count();
-                    }
-                }
-            }
-            if(j==0){
-                avg = partial/19.0;
-            }else{
-                avg = partial/20.0;
-            }
-            partial = 0;
-            outfile <<avg <<std::endl;
+            outfile <<duration.count()<<std::endl;
         }
         outfile.close();  
 
         std::ofstream outfile2;
-        int partial2 = 0, avg2=0;
         outfile.open("transform.txt_"+postfix);
         outfile2.open("stable_sort.txt_"+postfix);
-        for(int j = 0; j < 20; j++){
-            int n = 1<<j;
-            for(int i = 0; i < 20; i++){
-                {
+        for(int j = 0; j < 1024; j++){
+            int n = 1024 * (j + 1);
                     sycl::buffer<int> keys_buf{n};  // buffer with keys
                     sycl::buffer<int> vals_buf{n};  // buffer with values
 
@@ -252,10 +156,7 @@ int main(int argc, char *argv[]) {
 
                     auto stop = std::chrono::high_resolution_clock::now();
                     auto duration = duration_cast<std::chrono::microseconds>(stop - start);
-                    if(!(j==0&&i==0)){
-                        partial += duration.count();
-                    }
-                    
+                    outfile <<duration.count()<<std::endl;
                     //////////////////////////////////////////////////////////////////////////
                     // fill vals_buf with the analogue of std::iota using counting_iterator
                     std::copy(policy, counting_begin, counting_begin + n, vals_begin);
@@ -273,23 +174,8 @@ int main(int argc, char *argv[]) {
                                     
                     stop = std::chrono::high_resolution_clock::now();
                     duration = duration_cast<std::chrono::microseconds>(stop - start);
-                    if(!(j==0&&i==0)){
-                        partial2 += duration.count();
-                    }
                     //////////////////////////////////////////////////////////////////////////
-            }
-        }
-        if(j==0){
-            avg = partial/19.0;
-            avg2 = partial2/19.0;
-        }else{
-            avg = partial/20.0;
-            avg2 = partial2/20.0;
-        }
-        partial = 0;
-        outfile <<avg <<std::endl;
-        partial2 = 0;
-        outfile2 <<avg2 <<std::endl;
+        outfile2 <<duration.count()<<std::endl;
     }
     outfile.close();
     outfile2.close();
