@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
         outfile.close();
 
         outfile.open("sort_async.txt_"+postfix);
-        for(int j = 1; j < 1024; j++){ //caviat: sort must start with buff size at least 2
+        for(int j = 0; j < 1024; j++){ //caviat: sort must start with buff size at least 2
             int test_size = 1024 * (j + 1);
             sycl::buffer<int> a{test_size};
             auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
@@ -179,6 +179,21 @@ int main(int argc, char *argv[]) {
     }
     outfile.close();
     outfile2.close();
+    outfile.open("transform_async.txt_"+postfix);
+    for(int j = 0; j < 1024; j++){
+        int n = 1024 * (j + 1);
+        sycl::buffer<int> a{n};
+        auto fut1 = dpl::experimental::fill_async(dpl::execution::dpcpp_default,
+                                                  dpl::begin(a),dpl::end(a),7);
+        auto start = std::chrono::high_resolution_clock::now();
+        auto fut2 = dpl::experimental::transform_async(dpl::execution::dpcpp_default,
+                                                       dpl::begin(a),dpl::end(a),dpl::begin(a),
+                                                       [&](const int& x){return x + 1; },fut1);
+        auto stop = std::chrono::high_resolution_clock::now();
+        auto duration = duration_cast<std::chrono::microseconds>(stop - start);
+        outfile <<duration.count()<<std::endl;
+    }
+    outfile.close();
     return 0;
     }
 }
