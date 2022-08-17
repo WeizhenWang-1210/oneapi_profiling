@@ -26,6 +26,9 @@ int main(int argc, char *argv[]) {
         for(int j = 0; j < 1024; j++){
             int test_size = 1024 * (j + 1);
             sycl::buffer<int> a{test_size};
+            if(j==0){
+                auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
+            }
             auto start = std::chrono::high_resolution_clock::now();
             auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
             fut1.wait();
@@ -41,6 +44,10 @@ int main(int argc, char *argv[]) {
             sycl::buffer<int> a{test_size};
             auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
             fut1.wait();
+            if(j==0){
+                 auto ret_val = dpl::experimental::reduce_async(dpl::execution::dpcpp_default,
+                                                            dpl::begin(a),dpl::end(a),fut1).get();
+            }
             auto start = std::chrono::high_resolution_clock::now();
             auto ret_val = dpl::experimental::reduce_async(dpl::execution::dpcpp_default,
                                                             dpl::begin(a),dpl::end(a),fut1).get();
@@ -56,6 +63,10 @@ int main(int argc, char *argv[]) {
             sycl::buffer<int> a{test_size};
             auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
             fut1.wait();
+            if(j==0){
+                  auto ret_val = dpl::experimental::sort_async(dpl::execution::dpcpp_default,
+                                                            dpl::begin(a),dpl::end(a),fut1);
+            }
             auto start = std::chrono::high_resolution_clock::now();
             auto ret_val = dpl::experimental::sort_async(dpl::execution::dpcpp_default,
                                                             dpl::begin(a),dpl::end(a),fut1);
@@ -74,6 +85,10 @@ int main(int argc, char *argv[]) {
                     sycl::buffer<int> b{test_size};
                     auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
                     fut1.wait();
+                    if(j==0){
+                        auto ret_val = dpl::experimental::inclusive_scan_async(dpl::execution::dpcpp_default,
+                                                            dpl::begin(a),dpl::end(a),dpl::begin(b), std::plus<>{}, fut1);
+                    }
                     auto start = std::chrono::high_resolution_clock::now();
                     auto ret_val = dpl::experimental::inclusive_scan_async(dpl::execution::dpcpp_default,
                                                             dpl::begin(a),dpl::end(a),dpl::begin(b), std::plus<>{}, fut1);
@@ -92,6 +107,10 @@ int main(int argc, char *argv[]) {
                     sycl::buffer<int> b{test_size};
                     auto fut1 = dpl::experimental::fill_async(policy,dpl::begin(a),dpl::end(a),(1<<31));
                     fut1.wait();
+                    if(j==0){
+                       auto ret_val = dpl::experimental::copy_async(dpl::execution::dpcpp_default,
+                                                            dpl::begin(a),dpl::end(a),dpl::begin(b), fut1);
+                    }
                     auto start = std::chrono::high_resolution_clock::now();
                     auto ret_val = dpl::experimental::copy_async(dpl::execution::dpcpp_default,
                                                             dpl::begin(a),dpl::end(a),dpl::begin(b), fut1);
@@ -102,9 +121,6 @@ int main(int argc, char *argv[]) {
         }
         outfile.close();
 
-        //oneapi::transform
-        //oneapi::stable_sort
-        //oneapi::for_each
         
         outfile.open("max_element.txt_"+postfix);
         for(int j = 0; j < 1024; j++){
@@ -185,6 +201,11 @@ int main(int argc, char *argv[]) {
         sycl::buffer<int> a{n};
         auto fut1 = dpl::experimental::fill_async(dpl::execution::dpcpp_default,
                                                   dpl::begin(a),dpl::end(a),7);
+        if(j==0){
+                auto fut2 = dpl::experimental::transform_async(dpl::execution::dpcpp_default,
+                                                       dpl::begin(a),dpl::end(a),dpl::begin(a),
+                                                       [&](const int& x){return x + 1; },fut1);
+        }                                          
         auto start = std::chrono::high_resolution_clock::now();
         auto fut2 = dpl::experimental::transform_async(dpl::execution::dpcpp_default,
                                                        dpl::begin(a),dpl::end(a),dpl::begin(a),
