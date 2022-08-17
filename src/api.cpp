@@ -18,12 +18,8 @@ int main() {
       sycl::buffer<int> a{10};
       auto fut1 = dpl::experimental::fill_async(dpl::execution::dpcpp_default,
                                                   dpl::begin(a),dpl::end(a),7);
-
-      auto fut2 = dpl::experimental::transform_async(dpl::execution::dpcpp_default,
-                                                       dpl::begin(a),dpl::end(a),dpl::begin(a),
-                                                       [&](const int& x){return x + 1; },fut1);
       auto ret_val = dpl::experimental::reduce_async(dpl::execution::dpcpp_default,
-                                                       dpl::begin(a),dpl::end(a),fut1,fut2).get(); 
+                                                       dpl::begin(a),dpl::end(a),fut1,fut1).get(); 
         for(int j = 0; j < 1024; j++){
           int test_size = 1024 * (j + 1);
           sycl::buffer<int> a{test_size};
@@ -33,20 +29,15 @@ int main() {
           auto breakpoint1 = std::chrono::system_clock::now();
           auto duration1 = duration_cast<std::chrono::microseconds>(breakpoint1 - start);  
           //
-          auto fut2 = dpl::experimental::transform_async(dpl::execution::dpcpp_default,
-                                                       dpl::begin(a),dpl::end(a),dpl::begin(a),
-                                                       [&](const int& x){return x + 1; },fut1);
-          //
-          auto breakpoint2 = std::chrono::system_clock::now();
-          auto duration2 = duration_cast<std::chrono::microseconds>(breakpoint2 - breakpoint1);  
+
           auto ret_val = dpl::experimental::reduce_async(dpl::execution::dpcpp_default,
-                                                       dpl::begin(a),dpl::end(a),fut1,fut2).get(); 
+                                                       dpl::begin(a),dpl::end(a),fut1).get(); 
           
           auto stop = std::chrono::system_clock::now();  
           auto duration = duration_cast<std::chrono::microseconds>(stop - start);  
-          auto duration3 =   duration_cast<std::chrono::microseconds>(stop - breakpoint2);  
+          auto duration2 =   duration_cast<std::chrono::microseconds>(stop - breakpoint1);  
           outfile << duration.count() <<std::endl;
-          outfile2 << duration1.count()<<";"<<duration2.count()<<";"<<duration3.count()<<std::endl;     
+          outfile2 << duration1.count()<<";"<<duration2.count()<<std::endl;     
         }
         outfile.close();
     }
