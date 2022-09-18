@@ -19,7 +19,7 @@ int main() {
       auto fut1 = dpl::experimental::fill_async(dpl::execution::dpcpp_default,
                                                   dpl::begin(a),dpl::end(a),7);
       auto ret_val = dpl::experimental::reduce_async(dpl::execution::dpcpp_default,
-                                                       dpl::begin(a),dpl::end(a),fut1,fut1).get(); 
+                                                       dpl::begin(a),dpl::end(a),fut1).get(); 
         for(int j = 0; j < 1024; j++){
           int test_size = 1024 * (j + 1);
           sycl::buffer<int> a{test_size};

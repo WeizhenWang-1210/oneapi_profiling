@@ -210,6 +210,7 @@ int main(int argc, char *argv[]) {
         auto fut2 = dpl::experimental::transform_async(dpl::execution::dpcpp_default,
                                                        dpl::begin(a),dpl::end(a),dpl::begin(a),
                                                        [&](const int& x){return x + 1; },fut1);
+        fut2.wait();
         auto stop = std::chrono::high_resolution_clock::now();
         auto duration = duration_cast<std::chrono::microseconds>(stop - start);
         outfile <<duration.count()<<std::endl;
